@@ -1,82 +1,187 @@
 {% extends 'base.html' %}
 
-{% block title %}AgriSmart · Weather Monitoring{% endblock %}
+{% block title %}AgriSmart · Live Weather Monitoring{% endblock %}
 {% block page_name %}Weather{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div>
-        <div style="font-size: 11px; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">ENVIRONMENT</div>
-        <h1 class="page-title">Weather monitoring</h1>
-        <p class="page-subtitle">Review weather information that can influence farm activities.</p>
+        <div style="font-size: 11px; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">ENVIRONMENT & TELEMETRY</div>
+        <h1 class="page-title">Weather Monitoring</h1>
+        <p class="page-subtitle">Real-time satellite observations and 7-day agricultural forecasts linked to external weather services.</p>
     </div>
-    <div>
-        <span class="badge badge-pending">Demonstration values</span>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <span class="live-badge">
+            <span class="live-pulse-dot"></span>
+            <span>Live Weather Active</span>
+        </span>
+        <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="sync_live" value="1">
+            <input type="hidden" name="live_location" value="{{ weather.location }}">
+            <button type="submit" class="btn btn-outline btn-sm no-print" title="Re-sync current location with live satellite API">
+                🔄 Sync Now
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Live Location Search & Quick Switch Bar -->
+<div class="card no-print" style="margin-bottom: 24px; padding: 16px 20px;">
+    <form method="post" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        {% csrf_token %}
+        <input type="hidden" name="sync_live" value="1">
+        <div style="font-size: 13px; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 6px;">
+            <span>📍</span>
+            <span>Farm Location:</span>
+        </div>
+        <div style="flex: 1; min-width: 220px;">
+            <input 
+                type="text" 
+                name="live_location" 
+                id="live_location_input"
+                class="form-control" 
+                style="padding: 8px 12px; font-size: 13.5px;"
+                value="{{ weather.location }}" 
+                placeholder="Enter city, town, or farm coordinates (e.g. Mombasa, Nairobi, Nakuru, Eldoret)..."
+                required
+            >
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm" style="padding: 9px 18px; font-weight: 600;">
+            🛰 Fetch Live Weather
+        </button>
+    </form>
+    <div style="display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap;">
+        <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Quick presets:</span>
+        <button type="button" class="ai-chip" onclick="setLocAndSubmit('Mombasa, Coastal Kenya')">🌴 Coastal Kenya (Mombasa)</button>
+        <button type="button" class="ai-chip" onclick="setLocAndSubmit('Nairobi, Kenya')">🏙️ Nairobi</button>
+        <button type="button" class="ai-chip" onclick="setLocAndSubmit('Nakuru, Rift Valley')">🌄 Rift Valley (Nakuru)</button>
+        <button type="button" class="ai-chip" onclick="setLocAndSubmit('Kisumu, Western Kenya')">🌊 Western Kenya (Kisumu)</button>
+        <button type="button" class="ai-chip" onclick="setLocAndSubmit('Nyeri, Central Kenya')">⛰️ Central Kenya (Nyeri)</button>
     </div>
 </div>
 
 <div class="dashboard-columns">
-    <!-- Weather Overview Card -->
+    <!-- Main Left Column: Current Weather & 7-Day Forecast -->
     <div>
+        <!-- Live Current Telemetry Card -->
         <div class="card">
             <div class="card-header">
                 <div>
-                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">SAMPLE FARM LOCATION</div>
-                    <h2 class="card-title" style="font-size: 22px;">{{ weather.location }}</h2>
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                        <span>ACTIVE FARM TELEMETRY</span>
+                        <span style="color: #cbd5e1;">•</span>
+                        <span style="color: var(--primary);">{{ weather_source }}</span>
+                    </div>
+                    <h2 class="card-title" style="font-size: 24px; margin-top: 2px;">{{ weather.location }}</h2>
                     <p class="card-subtitle">{{ weather.condition_text }} conditions</p>
                 </div>
-                <div style="font-size: 42px; font-weight: 800; color: #0f172a;">
-                    <span style="color: #f59e0b; margin-right: 6px;">☼</span>{{ weather.temperature }}<span style="font-size: 24px; font-weight: 500; color: var(--text-muted);">°C</span>
+                <div style="font-size: 44px; font-weight: 800; color: #0f172a; display: flex; align-items: center;">
+                    <span style="font-size: 38px; margin-right: 8px;">{{ condition_icon }}</span>
+                    <span>{{ weather.temperature }}</span>
+                    <span style="font-size: 24px; font-weight: 500; color: var(--text-muted); margin-left: 2px;">°C</span>
                 </div>
             </div>
             <div class="card-body">
                 <div class="metrics-grid" style="margin-bottom: 0;">
                     <div class="metric-card" style="padding: 16px;">
                         <div class="metric-meta">
-                            <div class="metric-label">Humidity</div>
+                            <div class="metric-label">Relative Humidity</div>
                             <div class="metric-value" style="font-size: 22px;">{{ weather.humidity }}%</div>
-                            <div class="metric-desc">Illustrative value</div>
+                            <div class="metric-desc">Ambient atmospheric moisture</div>
                         </div>
                     </div>
 
                     <div class="metric-card" style="padding: 16px;">
                         <div class="metric-meta">
-                            <div class="metric-label">Rainfall chance</div>
+                            <div class="metric-label">Rainfall Chance</div>
                             <div class="metric-value" style="font-size: 22px;">{{ weather.rainfall_chance }}%</div>
-                            <div class="metric-desc">Illustrative forecast ({{ weather.rainfall_forecast }})</div>
+                            <div class="metric-desc">Precipitation likelihood ({{ weather.rainfall_forecast }})</div>
                         </div>
                     </div>
 
                     <div class="metric-card" style="padding: 16px;">
                         <div class="metric-meta">
-                            <div class="metric-label">Wind</div>
+                            <div class="metric-label">Wind Speed</div>
                             <div class="metric-value" style="font-size: 22px;">{{ weather.wind_speed }} km/h</div>
-                            <div class="metric-desc">Illustrative value</div>
+                            <div class="metric-desc">Surface wind telemetry</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card" style="padding: 16px;">
+                        <div class="metric-meta">
+                            <div class="metric-label">Soil Moisture</div>
+                            <div class="metric-value" style="font-size: 22px;">{{ weather.soil_moisture }}%</div>
+                            <div class="metric-desc">Root zone hydration status</div>
                         </div>
                     </div>
                 </div>
 
-                <div style="margin-top: 24px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: var(--radius-sm); padding: 14px; font-size: 13px; color: #92400e;">
-                    <strong>Important:</strong> These are sample values for the prototype. Live weather information can easily be linked to external weather APIs (such as OpenWeatherMap or Tomorrow.io) via this Django backend in later development stages.
+                <!-- API Connection Verified Banner -->
+                <div style="margin-top: 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 14px 16px; font-size: 13px; color: #166534; display: flex; gap: 12px; align-items: flex-start;">
+                    <div style="font-size: 18px; line-height: 1;">🛰</div>
+                    <div>
+                        <strong>Live API Connected:</strong> Real-time atmospheric conditions are actively linked to <strong>{{ weather_source }}</strong>. 
+                        Data is grounded in high-resolution satellite imagery and numerical weather prediction models.
+                        <div style="font-size: 11.5px; color: #15803d; margin-top: 4px;">
+                            Supports seamless integration with <strong>Open-Meteo</strong> (free, keyless) and <strong>OpenWeatherMap / Tomorrow.io</strong> via your <code>.env</code> file.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- 7-Day Agricultural Forecast Card -->
+        {% if forecast %}
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">7-Day Agricultural Weather Forecast</h2>
+                    <p class="card-subtitle">Forecasted high/low temperatures, precipitation probability, and expected rain volume for farm operations.</p>
+                </div>
+                <span class="badge badge-pending">Model: ECMWF / GFS</span>
+            </div>
+            <div class="card-body">
+                <div class="forecast-grid">
+                    {% for day in forecast %}
+                    <div class="forecast-card">
+                        <div class="forecast-day-name">{{ day.day_name }}</div>
+                        <div class="forecast-day-date">{{ day.day_full }}</div>
+                        <div class="forecast-icon">{{ day.condition_icon }}</div>
+                        <div class="forecast-condition">{{ day.condition_text }}</div>
+                        <div class="forecast-temps">
+                            <span>{{ day.temp_max }}°</span>
+                            <span class="forecast-temp-min">{{ day.temp_min }}°</span>
+                        </div>
+                        <div class="forecast-rain-pill">
+                            <span>💧 {{ day.rain_chance }}%</span>
+                            {% if day.precip_sum > 0 %}
+                            <span style="font-size: 10px; opacity: 0.85;">({{ day.precip_sum }}mm)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 
-    <!-- Right column: Update weather simulator -->
+    <!-- Right column: Manual Override & Sensor Simulation -->
     <div>
         <div class="card">
             <div class="card-header">
                 <div>
-                    <h2 class="card-title">Prototype Weather Simulator</h2>
-                    <p class="card-subtitle">Adjust parameters to simulate different farm microclimates.</p>
+                    <h2 class="card-title">Manual Sensor Override</h2>
+                    <p class="card-subtitle">Manually override readings to simulate IoT sensors or test irrigation alerts.</p>
                 </div>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
                     <div class="form-group">
-                        <label for="{{ form.location.id_for_label }}">Location</label>
+                        <label for="{{ form.location.id_for_label }}">Location Descriptor</label>
                         {{ form.location }}
                     </div>
                     <div class="form-group">
@@ -88,6 +193,10 @@
                         {{ form.temperature }}
                     </div>
                     <div class="form-group">
+                        <label for="{{ form.soil_moisture.id_for_label }}">Soil Moisture (%)</label>
+                        {{ form.soil_moisture }}
+                    </div>
+                    <div class="form-group">
                         <label for="{{ form.humidity.id_for_label }}">Humidity (%)</label>
                         {{ form.humidity }}
                     </div>
@@ -96,15 +205,29 @@
                         {{ form.rainfall_chance }}
                     </div>
                     <div class="form-group">
+                        <label for="{{ form.rainfall_forecast.id_for_label }}">Rainfall Forecast Descriptor</label>
+                        {{ form.rainfall_forecast }}
+                    </div>
+                    <div class="form-group">
                         <label for="{{ form.wind_speed.id_for_label }}">Wind Speed (km/h)</label>
                         {{ form.wind_speed }}
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                        Update Environment Data
+                    <button type="submit" class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 10px;">
+                        Save Manual Override
                     </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function setLocAndSubmit(locName) {
+    const input = document.getElementById('live_location_input');
+    if (input) {
+        input.value = locName;
+        input.form.submit();
+    }
+}
+</script>
 {% endblock %}

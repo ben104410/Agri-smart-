@@ -53,6 +53,7 @@ def build_system_context(user=None) -> str:
 
     # 3. Weather / Farm Condition
     condition = FarmCondition.objects.filter(is_active=True).first()
+    forecast_lines = []
     if condition:
         weather_summary = (
             f"Location: {condition.location}\n"
@@ -64,8 +65,19 @@ def build_system_context(user=None) -> str:
             f"Wind Speed: {condition.wind_speed} km/h\n"
             f"Last Recorded: {condition.recorded_at.strftime('%Y-%m-%d %H:%M')}"
         )
+        try:
+            from .weather_service import fetch_live_weather
+            live_w = fetch_live_weather(condition.location)
+            for day in live_w.get('forecast', [])[:5]:
+                forecast_lines.append(
+                    f"  - {day['day_name']} ({day['day_full']}): {day['condition_icon']} {day['condition_text']} | High: {day['temp_max']}°C, Low: {day['temp_min']}°C | Rain Chance: {day['rain_chance']}% (Est. Rain: {day['precip_sum']}mm)"
+                )
+        except Exception:
+            pass
     else:
         weather_summary = "No active weather sensor record found."
+
+    forecast_text = "\n".join(forecast_lines) if forecast_lines else "  No multi-day forecast available."
 
     # 4. Alerts
     alerts = FarmAlert.objects.filter(is_active=True).order_by('-created_at')
@@ -88,6 +100,48 @@ Farmers and visitors can ask you about how to navigate and use ANY feature of Ag
 
 1. Dashboard (/):
    - Executive farm overview: total crops, live weather widget, pending irrigation count, active farm alerts.
+   - Quick "Register New Crop" form directly on the dashboard.
+   - Quick table of recently registered crops.
+
+2. Crop Management (/crops/):
+   - Crop registry with total crop counts and status badges.
+   - Crop registration form (Crop Name, Plot Name, Planting Date, Condition: Healthy / Needs attention / At risk, and Notes).
+   - Edit crop details at /crops/<id>/edit/.
+   - Delete crop at /crops/<id>/delete/.
+
+3. Weather Telemetry (/weather/):
+   - Real-time farm telemetry: Temperature, Soil Moisture %, Relative Humidity %, Rainfall Chance %, Wind Speed.
+   - Live location switcher to fetch real-time satellite & numerical weather data for any farm or city.
+   - 7-Day agricultural weather forecast cards (temperatures, precipitation chance, rain volume).
+   - "Manual Sensor Override" form to adjust sensor data and simulations.
+
+4. Irrigation Scheduling (/irrigation/):
+   - List of scheduled irrigation tasks with status (Pending, Completed, Cancelled).
+   - "Schedule Irrigation" form (Crop or Plot, Scheduled Date, Water Amount, Notes).
+   - Instant "Mark Completed" / "Mark Pending" toggle button (/irrigation/<id>/toggle/).
+   - Delete task (/irrigation/<id>/delete/).
+
+5. Reports & Analytics (/reports/):
+   - High-level farm summary, crop health breakdown, irrigation execution stats.
+   - Integrated "Print / Save PDF" button for official farm audit logs.
+
+6. REST API Endpoints (/api/):
+   - JSON endpoints: /api/crops/, /api/weather/, /api/irrigation/, /api/alerts/, and token auth at /api/auth/token/.
+
+7. AI Assistant (/ai-assistant/):
+   - Full dedicated chat workspace and floating quick-chat widget available on every page.
+
+==================================================
+CURRENT LIVE FARM DATABASE SNAPSHOT
+==================================================
+CURRENT WEATHER & SOIL STATUS:
+{weather_summary}
+
+UPCOMING 5-DAY AGRICULTURAL WEATHER FORECAST:
+{forecast_text}
+
+ACTIVE SYSTEM ALERTS ({alerts.count()} active):
+{alerts_text}
    - Quick "Register New Crop" form directly on the dashboard.
    - Quick table of recently registered crops.
 

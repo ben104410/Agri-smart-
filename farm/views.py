@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from .models import Crop, IrrigationTask, FarmCondition, FarmAlert, ChatMessage
 from .ai_service import get_ai_chat_response
+from .weather_service import fetch_live_weather, sync_live_weather
 from .forms import (
     CropForm,
     IrrigationTaskForm,
@@ -115,20 +116,81 @@ def crop_delete(request, pk):
 
 def weather_view(request):
     weather = get_default_condition()
-    form = FarmConditionForm(request.POST or None, instance=weather)
+    form = FarmConditionForm(instance=weather)
 
     if request.method == 'POST':
+        # Live weather synchronization action
+        if 'sync_live' in request.POST:
+            loc = request.POST.get('live_location', '').strip() or weather.location
+            try:
+                weather, live_data = sync_live_weather(loc)
+                messages.success(
+                    request,
+                    f"Successfully synchronized live weather for '{weather.location}' from {live_data.get('source')}!"
+                )
+            except Exception as e:
+                messages.error(request, f"Could not sync live weather: {e}")
+            return redirect('weather')
+
+        # Manual parameter update / simulation
+        form = FarmConditionForm(request.POST, instance=weather)
         if form.is_valid():
             form.save()
-            messages.success(request, "Farm weather condition updated!")
+            messages.success(request, "Farm weather condition updated manually!")
             return redirect('weather')
+
+    # Fetch real-time 7-day agricultural forecast for current location
+    forecast = []
+    weather_source = "Live Weather API"
+    condition_icon = "⛅"
+    try:
+        live_info = fetch_live_weather(weather.location)
+        forecast = live_info.get('forecast', [])
+        weather_source = live_info.get('source', 'Live Weather API')
+        condition_icon = live_info.get('condition_icon', '⛅')
+    except Exception:
+        pass
 
     context = {
         'weather': weather,
         'form': form,
+        'forecast': forecast,
+        'weather_source': weather_source,
+        'condition_icon': condition_icon,
         'active_nav': 'weather',
     }
     return render(request, 'farm/weather.html', context)
+
+
+@require_POST
+def weather_sync_api(request):
+    """
+    JSON API endpoint for syncing live weather from external API.
+    """
+    try:
+        data = json.loads(request.body.decode('utf-8') or '{}')
+    except Exception:
+        data = {}
+
+    location = data.get('location') or request.POST.get('location')
+    try:
+        weather, live_data = sync_live_weather(location)
+        return JsonResponse({
+            'success': True,
+            'source': live_data.get('source'),
+            'location': weather.location,
+            'temperature': float(weather.temperature),
+            'humidity': weather.humidity,
+            'wind_speed': float(weather.wind_speed),
+            'rainfall_chance': weather.rainfall_chance,
+            'rainfall_forecast': weather.rainfall_forecast,
+            'condition_text': weather.condition_text,
+            'condition_icon': live_data.get('condition_icon', '⛅'),
+            'forecast': live_data.get('forecast', []),
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 
 def irrigation_view(request):

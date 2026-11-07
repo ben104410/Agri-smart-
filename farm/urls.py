@@ -10,6 +10,7 @@ urlpatterns = [
     path('crops/<int:pk>/edit/', views.crop_edit, name='crop_edit'),
     path('crops/<int:pk>/delete/', views.crop_delete, name='crop_delete'),
     path('weather/', views.weather_view, name='weather'),
+    path('weather/sync/', views.weather_sync_api, name='weather_sync_api'),
     path('irrigation/', views.irrigation_view, name='irrigation'),
     path('irrigation/<int:pk>/toggle/', views.irrigation_toggle_status, name='irrigation_toggle'),
     path('irrigation/<int:pk>/delete/', views.irrigation_delete, name='irrigation_delete'),

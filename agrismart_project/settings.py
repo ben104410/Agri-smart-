@@ -180,4 +180,12 @@ CORS_ALLOW_HEADERS = [
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
 
+# External Weather APIs Configuration
+# Uses Open-Meteo by default (free, global live satellite & forecast, no API key required).
+# Optionally supports OpenWeatherMap or Tomorrow.io if API keys are provided.
+DEFAULT_FARM_LOCATION = os.getenv('DEFAULT_FARM_LOCATION', 'Mombasa, Coastal Kenya')
+OPENWEATHERMAP_API_KEY = os.getenv('OPENWEATHERMAP_API_KEY', '')
+TOMORROW_IO_API_KEY = os.getenv('TOMORROW_IO_API_KEY', '')
+
+
 
