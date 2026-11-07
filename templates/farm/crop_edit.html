@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}AgriSmart · Edit Crop{% endblock %}
+{% block page_name %}Crop management / Edit{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Edit Crop: {{ crop.name }}</h1>
+        <p class="page-subtitle">Update crop records and health status.</p>
+    </div>
+    <a href="{% url 'crop_list' %}" class="btn btn-outline">← Back to crop list</a>
+</div>
+
+<div style="max-width: 600px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Crop Details</h2>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">Crop name</label>
+                    {{ form.name }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.plot_name.id_for_label }}">Farm / plot name</label>
+                    {{ form.plot_name }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.planting_date.id_for_label }}">Planting date</label>
+                    {{ form.planting_date }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.condition.id_for_label }}">Crop condition</label>
+                    {{ form.condition }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.notes.id_for_label }}">Observations / Notes</label>
+                    {{ form.notes }}
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                    <a href="{% url 'crop_list' %}" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

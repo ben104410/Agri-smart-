@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}AgriSmart · Sign In{% endblock %}
+{% block page_name %}Account / Sign In{% endblock %}
+
+{% block content %}
+<div style="max-width: 480px; margin: 40px auto 0;">
+    <div class="card" style="box-shadow: var(--shadow-md);">
+        <div class="card-header" style="text-align: center; display: block; padding: 28px 24px 20px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #4caf50, #2e7d32); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: bold; margin: 0 auto 14px;">
+                ✳
+            </div>
+            <h1 class="card-title" style="font-size: 22px; margin-bottom: 6px;">Sign in to AgriSmart</h1>
+            <p class="card-subtitle">Access your farm overview, crop records, and irrigation schedules.</p>
+        </div>
+        <div class="card-body" style="padding: 24px 32px 32px;">
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Username or Email</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 15px; margin-top: 8px;">
+                    Sign in to your account
+                </button>
+            </form>
+
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; font-size: 13.5px; color: var(--text-muted);">
+                Don't have an account yet?
+                <a href="{% url 'register' %}" style="color: var(--primary); font-weight: 700; text-decoration: none; margin-left: 4px;">
+                    Create an account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

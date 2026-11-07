@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}AgriSmart · Farm Summary & Reports{% endblock %}
+{% block page_name %}Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="font-size: 11px; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">FARM SUMMARY</div>
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle">A simple summary of the records entered in this prototype.</p>
+    </div>
+    <div class="actions no-print">
+        <button onclick="window.print()" class="btn btn-outline">
+            🖨 Print report
+        </button>
+    </div>
+</div>
+
+<!-- Summary metric counters matching prototype -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-meta">
+            <div class="metric-label">Crop records</div>
+            <div class="metric-value">{{ total_crops }}</div>
+            <div class="metric-desc">Total farm crop inventories</div>
+        </div>
+        <div class="metric-icon-badge icon-green">♧</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-meta">
+            <div class="metric-label">Irrigation tasks</div>
+            <div class="metric-value">{{ total_tasks }}</div>
+            <div class="metric-desc">Logged water actions</div>
+        </div>
+        <div class="metric-icon-badge icon-blue">◉</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-meta">
+            <div class="metric-label">Healthy crops</div>
+            <div class="metric-value">{{ healthy_count }}</div>
+            <div class="metric-desc">
+                {{ attention_count }} attention · {{ risk_count }} at risk
+            </div>
+        </div>
+        <div class="metric-icon-badge icon-amber">🌿</div>
+    </div>
+</div>
+
+<!-- Detailed Crop Report Card -->
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">Crop report</h2>
+            <p class="card-subtitle">This report is generated from verified database records in AgriSmart.</p>
+        </div>
+        <span class="badge badge-pending">Generated on: {{ generated_date|date:"d M Y, H:i" }}</span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if crops %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Crop</th>
+                        <th>Plot</th>
+                        <th>Planting date</th>
+                        <th>Condition</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for crop in crops %}
+                    <tr>
+                        <td><strong>{{ crop.name }}</strong></td>
+                        <td>{{ crop.plot_name }}</td>
+                        <td>{{ crop.planting_date|date:"d M Y" }}</td>
+                        <td>
+                            {% if crop.condition == 'healthy' %}
+                                <span class="badge badge-healthy">Healthy</span>
+                            {% elif crop.condition == 'needs_attention' %}
+                                <span class="badge badge-attention">Needs attention</span>
+                            {% else %}
+                                <span class="badge badge-risk">At risk</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ crop.notes|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+            <p><strong>No data available.</strong></p>
+            <p style="font-size: 13px;">Add crop records to populate this report.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

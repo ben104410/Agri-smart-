@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}AgriSmart · Crop Management{% endblock %}
+{% block page_name %}Crop management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="font-size: 11px; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">FARM RECORDS</div>
+        <h1 class="page-title">Crop management</h1>
+        <p class="page-subtitle">Register and monitor the crops grown on your farm.</p>
+    </div>
+</div>
+
+<div class="dashboard-columns">
+    <!-- Form to Register a Crop -->
+    <div id="register-crop">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">Register a crop</h2>
+                    <p class="card-subtitle">Add a new crop record to your farm inventory.</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'crop_list' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}">Crop name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.plot_name.id_for_label }}">Farm / plot name</label>
+                        {{ form.plot_name }}
+                        {% if form.plot_name.errors %}
+                        <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.plot_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.planting_date.id_for_label }}">Planting date</label>
+                        {{ form.planting_date }}
+                        {% if form.planting_date.errors %}
+                        <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.planting_date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.condition.id_for_label }}">Crop condition</label>
+                        {{ form.condition }}
+                        {% if form.condition.errors %}
+                        <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.condition.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.notes.id_for_label }}">Observations / Notes (optional)</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        Save crop record
+                    </button>
+                    <p class="form-hint" style="text-align: center; margin-top: 10px;">
+                        Persistent storage powered by Django and SQLite database.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crop Records List -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">Crop records</h2>
+                    <p class="card-subtitle">Your saved crop information.</p>
+                </div>
+                <span class="badge badge-pending">{{ total_records }} record{{ total_records|pluralize }}</span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% if crops %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Crop</th>
+                                <th>Farm / plot</th>
+                                <th>Planting date</th>
+                                <th>Condition</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for crop in crops %}
+                            <tr>
+                                <td>
+                                    <strong>{{ crop.name }}</strong>
+                                    {% if crop.notes %}
+                                    <div style="font-size: 11px; color: var(--text-muted);">{{ crop.notes|truncatechars:35 }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ crop.plot_name }}</td>
+                                <td>{{ crop.planting_date|date:"d M Y" }}</td>
+                                <td>
+                                    {% if crop.condition == 'healthy' %}
+                                        <span class="badge badge-healthy">Healthy</span>
+                                    {% elif crop.condition == 'needs_attention' %}
+                                        <span class="badge badge-attention">Needs attention</span>
+                                    {% else %}
+                                        <span class="badge badge-risk">At risk</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right;">
+                                    <div style="display: inline-flex; gap: 6px;">
+                                        <a href="{% url 'crop_edit' crop.pk %}" class="btn btn-outline btn-sm">Edit</a>
+                                        <form method="post" action="{% url 'crop_delete' crop.pk %}" onsubmit="return confirm('Are you sure you want to remove {{ crop.name }}?');" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+                    <div style="font-size: 32px; margin-bottom: 8px;">♧</div>
+                    <p><strong>No crop records yet.</strong></p>
+                    <p style="font-size: 13px;">Use the registration form to add your first crop.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

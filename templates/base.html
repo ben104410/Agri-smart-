@@ -1,0 +1,326 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AgriSmart · Precision Agriculture{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- App Sidebar -->
+    <aside class="app-sidebar no-print">
+        <div class="brand-wrapper">
+            <div class="brand-icon">✳</div>
+            <div class="brand-info">
+                <h2>AgriSmart</h2>
+                <span>Precision Agriculture</span>
+            </div>
+        </div>
+
+        <div class="user-badge">
+            <div class="avatar">
+                {% if user.is_authenticated %}
+                    {{ user.username|slice:":2"|upper }}
+                {% else %}
+                    FO
+                {% endif %}
+            </div>
+            <div class="user-info">
+                {% if user.is_authenticated %}
+                    <div class="name">{{ user.first_name|default:user.username }}</div>
+                    <div class="role">Farmer account</div>
+                {% else %}
+                    <div class="name">Guest Farmer</div>
+                    <div class="role">Prototype preview</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="nav-section-title">WORKSPACE</div>
+        <nav class="sidebar-nav">
+            <a href="{% url 'dashboard' %}" class="nav-link {% if active_nav == 'dashboard' %}active{% endif %}">
+                <span class="icon">▦</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'crop_list' %}" class="nav-link {% if active_nav == 'crops' %}active{% endif %}">
+                <span class="icon">♧</span>
+                <span>Crop management</span>
+            </a>
+            <a href="{% url 'weather' %}" class="nav-link {% if active_nav == 'weather' %}active{% endif %}">
+                <span class="icon">☼</span>
+                <span>Weather</span>
+            </a>
+            <a href="{% url 'irrigation' %}" class="nav-link {% if active_nav == 'irrigation' %}active{% endif %}">
+                <span class="icon">◉</span>
+                <span>Irrigation</span>
+            </a>
+            <a href="{% url 'reports' %}" class="nav-link {% if active_nav == 'reports' %}active{% endif %}">
+                <span class="icon">▤</span>
+                <span>Reports</span>
+            </a>
+            <a href="{% url 'ai_assistant' %}" class="nav-link {% if active_nav == 'ai_assistant' %}active{% endif %}" style="margin-top: 6px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.28);">
+                <span class="icon" style="color: #34d399;">✦</span>
+                <span style="font-weight: 600; color: #a7f3d0;">AI Assistant</span>
+                <span style="margin-left: auto; background: #059669; font-size: 10px; padding: 2px 7px; border-radius: 999px; color: #fff; font-weight: 700;">Gemini</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="nav-section-title">ACCOUNT</div>
+            {% if user.is_authenticated %}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 10px; background: rgba(255,255,255,0.06); border-radius: var(--radius-sm);">
+                    <span style="font-size: 12px; color: var(--sidebar-muted);">Logged in as <strong style="color: #fff;">{{ user.username }}</strong></span>
+                    <a href="{% url 'logout' %}" style="font-size: 11px; color: #fca5a5; text-decoration: none; font-weight: 600;">Log out</a>
+                </div>
+            {% else %}
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <a href="{% url 'login' %}" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center; color: #e2e8f0; border-color: rgba(255,255,255,0.2);">Sign In</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;">Sign Up</a>
+                </div>
+            {% endif %}
+            <div class="sidebar-help-card">
+                <h4><span>?</span> Help & guidance</h4>
+                <p><strong>Grow smarter.</strong> Use farm records and local conditions to make informed decisions.</p>
+            </div>
+            <div class="version-tag">AgriSmart Prototype · v1.0</div>
+        </div>
+    </aside>
+
+    <!-- Main Content Layout -->
+    <div class="app-main">
+        <header class="app-topbar no-print">
+            <div class="breadcrumbs">
+                <span>☰ Workspace</span>
+                <span>/</span>
+                <strong>{% block page_name %}Dashboard{% endblock %}</strong>
+            </div>
+            <div class="topbar-right">
+                {% if user.is_authenticated %}
+                    <span class="mode-badge" style="background: #e8f5e9; color: #1b5e20;">● Farmer: {{ user.username }}</span>
+                    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm no-print" style="padding: 4px 10px; font-size: 11px;">Log out</a>
+                {% else %}
+                    <span class="mode-badge">Prototype mode</span>
+                    <a href="{% url 'login' %}" class="btn btn-outline btn-sm no-print" style="padding: 4px 10px; font-size: 11px;">Sign In</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm no-print" style="padding: 4px 10px; font-size: 11px;">Sign Up</a>
+                {% endif %}
+                <span class="date-pill">{% now "l, d F Y" %}</span>
+            </div>
+        </header>
+
+        <main class="content-wrapper">
+            {% if messages %}
+            <div class="messages-container no-print">
+                {% for message in messages %}
+                <div class="alert-box {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="app-footer">
+            AgriSmart · Precision Agriculture for Sustainable Crop Management Academic prototype
+        </footer>
+    </div>
+
+    {% if active_nav != 'ai_assistant' %}
+    <!-- Floating AgriSmart AI Chat Widget -->
+    <div class="ai-floating-container no-print" id="ai-floating-widget">
+        <!-- Floating Popover Window -->
+        <div class="ai-floating-window" id="ai-floating-window">
+            <div class="ai-fw-header">
+                <div class="ai-fw-title">
+                    <div class="fw-icon">✦</div>
+                    <div>
+                        <h4>AgriSmart AI</h4>
+                        <span>● Live Farm Assistant</span>
+                    </div>
+                </div>
+                <div class="ai-fw-actions">
+                    <a href="{% url 'ai_assistant' %}" title="Open Full Screen Assistant" style="color:#a7f3d0; font-size:16px;">⤢</a>
+                    <button type="button" onclick="toggleFloatingChat()" title="Close chat" style="font-size:18px;">×</button>
+                </div>
+            </div>
+
+            {% if user.is_authenticated %}
+                <div class="ai-fw-body" id="ai-fw-messages">
+                    <div class="ai-msg ai-msg-bot">
+                        <div class="ai-msg-avatar">✦</div>
+                        <div class="ai-msg-bubble">
+                            <div class="ai-msg-sender">AgriSmart AI</div>
+                            <div>Hello {{ user.first_name|default:user.username }}! Need quick help with your crops, weather, or website navigation? Ask me anything below!</div>
+                        </div>
+                    </div>
+                    <div id="ai-fw-loading" class="ai-msg ai-msg-bot" style="display: none;">
+                        <div class="ai-msg-avatar">✦</div>
+                        <div class="ai-msg-bubble loading-bubble">
+                            <span class="ai-dot"></span>
+                            <span class="ai-dot"></span>
+                            <span class="ai-dot"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-fw-suggestions">
+                    <button type="button" class="ai-chip" onclick="quickAskFloating('What is my current soil moisture and weather outlook?')">⛅ Weather</button>
+                    <button type="button" class="ai-chip" onclick="quickAskFloating('Which crops need attention?')">🌾 Crop alerts</button>
+                    <button type="button" class="ai-chip" onclick="quickAskFloating('Are there any pending irrigation tasks?')">💧 Irrigation</button>
+                    <button type="button" class="ai-chip" onclick="quickAskFloating('How do I register a new crop?')">📝 Add crop</button>
+                </div>
+
+                <div class="ai-fw-footer">
+                    <form id="ai-fw-form" onsubmit="handleFloatingSend(event)">
+                        {% csrf_token %}
+                        <input type="text" id="ai-fw-input" placeholder="Ask any question about your farm..." autocomplete="off">
+                        <button type="submit" id="ai-fw-send-btn" title="Send question">➤</button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="ai-fw-body" style="justify-content: center; text-align: center; padding: 30px 20px;">
+                    <div style="font-size: 36px; margin-bottom: 12px;">🌾</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Sign in to Ask AgriSmart AI</h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 20px; line-height: 1.5;">
+                        Log in or sign up to ask questions about your crops, live soil moisture, irrigation schedules, and farm best practices.
+                    </p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-sm" style="padding: 8px 16px;">Sign In</a>
+                        <a href="{% url 'register' %}" class="btn btn-outline btn-sm" style="padding: 8px 16px;">Register</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Floating Trigger Button -->
+        <button class="ai-floating-trigger" onclick="toggleFloatingChat()" id="ai-floating-btn" aria-label="Open AI Assistant">
+            <span class="trigger-icon">✦</span>
+            <span>Ask AI</span>
+        </button>
+    </div>
+
+    <script>
+        function toggleFloatingChat() {
+            const win = document.getElementById('ai-floating-window');
+            const isOpen = win.classList.toggle('open');
+            if (isOpen) {
+                const input = document.getElementById('ai-fw-input');
+                if (input) input.focus();
+                scrollFloatingToBottom();
+            }
+        }
+
+        function scrollFloatingToBottom() {
+            const box = document.getElementById('ai-fw-messages');
+            if (box) {
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        function quickAskFloating(question) {
+            const input = document.getElementById('ai-fw-input');
+            if (!input) return;
+            input.value = question;
+            document.getElementById('ai-fw-form').dispatchEvent(new Event('submit'));
+        }
+
+        function formatSimpleMarkdown(text) {
+            if (!text) return '';
+            let s = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            s = s.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            s = s.replace(/`([^`]+)`/g, '<code style="background:#e2e8f0;padding:1px 4px;border-radius:3px;">$1</code>');
+            s = s.replace(/^[-*]\s+(.*?)$/gm, '<li style="margin-left: 14px;">$1</li>');
+            s = s.replace(/(<li.*<\/li>)/s, '<ul style="margin:4px 0;">$1</ul>');
+            s = s.replace(/\n\n/g, '<p style="margin:4px 0;"></p>');
+            s = s.replace(/\n/g, '<br>');
+            return s;
+        }
+
+        async function handleFloatingSend(e) {
+            e.preventDefault();
+            const input = document.getElementById('ai-fw-input');
+            const sendBtn = document.getElementById('ai-fw-send-btn');
+            const loading = document.getElementById('ai-fw-loading');
+            const messagesContainer = document.getElementById('ai-fw-messages');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Append user bubble
+            const userDiv = document.createElement('div');
+            userDiv.className = 'ai-msg ai-msg-user';
+            userDiv.innerHTML = `
+                <div class="ai-msg-bubble">
+                    <div class="ai-msg-sender">You</div>
+                    <div>${text.replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+            messagesContainer.insertBefore(userDiv, loading);
+            input.value = '';
+            loading.style.display = 'flex';
+            sendBtn.disabled = true;
+            scrollFloatingToBottom();
+
+            try {
+                const csrfToken = document.querySelector('#ai-fw-form [name=csrfmiddlewaretoken]').value;
+                const res = await fetch("{% url 'ai_chat_api' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await res.json();
+                loading.style.display = 'none';
+                sendBtn.disabled = false;
+
+                const botDiv = document.createElement('div');
+                botDiv.className = 'ai-msg ai-msg-bot';
+                if (res.ok) {
+                    botDiv.innerHTML = `
+                        <div class="ai-msg-avatar">✦</div>
+                        <div class="ai-msg-bubble">
+                            <div class="ai-msg-sender">AgriSmart AI</div>
+                            <div>${formatSimpleMarkdown(data.reply)}</div>
+                        </div>
+                    `;
+                } else {
+                    botDiv.innerHTML = `
+                        <div class="ai-msg-avatar" style="background:#ef4444;">!</div>
+                        <div class="ai-msg-bubble" style="background:#fff1f2; border-color:#fca5a5; color:#991b1b;">
+                            <div class="ai-msg-sender" style="color:#b91c1c;">Error</div>
+                            <div>${data.error || 'Failed to get answer.'}</div>
+                        </div>
+                    `;
+                }
+                messagesContainer.insertBefore(botDiv, loading);
+            } catch (err) {
+                loading.style.display = 'none';
+                sendBtn.disabled = false;
+                const errDiv = document.createElement('div');
+                errDiv.className = 'ai-msg ai-msg-bot';
+                errDiv.innerHTML = `
+                    <div class="ai-msg-avatar" style="background:#ef4444;">!</div>
+                    <div class="ai-msg-bubble" style="background:#fff1f2; border-color:#fca5a5; color:#991b1b;">
+                        <div class="ai-msg-sender" style="color:#b91c1c;">Error</div>
+                        <div>Could not connect to assistant.</div>
+                    </div>
+                `;
+                messagesContainer.insertBefore(errDiv, loading);
+            }
+            scrollFloatingToBottom();
+        }
+    </script>
+    {% endif %}
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

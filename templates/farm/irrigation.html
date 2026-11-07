@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}AgriSmart · Irrigation Management{% endblock %}
+{% block page_name %}Irrigation{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="font-size: 11px; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">WATER MANAGEMENT</div>
+        <h1 class="page-title">Irrigation management</h1>
+        <p class="page-subtitle">Create simple watering tasks and track their completion.</p>
+    </div>
+</div>
+
+<div class="dashboard-columns">
+    <!-- Add Irrigation Task Form -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">Add irrigation task</h2>
+                    <p class="card-subtitle">Schedule watering for your plots or crops.</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'irrigation' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="{{ form.crop_or_plot.id_for_label }}">Crop / plot</label>
+                        {{ form.crop_or_plot }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.crop.id_for_label }}">Link to registered crop (optional)</label>
+                        {{ form.crop }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.scheduled_date.id_for_label }}">Scheduled date</label>
+                        {{ form.scheduled_date }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.water_amount.id_for_label }}">Water amount</label>
+                        {{ form.water_amount }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.status.id_for_label }}">Initial status</label>
+                        {{ form.status }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.notes.id_for_label }}">Notes / Instructions (optional)</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        ＋ Add task
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Irrigation Schedule List -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">Irrigation schedule</h2>
+                    <p class="card-subtitle">Tasks saved in the system.</p>
+                </div>
+                <span class="badge badge-pending">{{ tasks.count }} scheduled</span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% if tasks %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Crop / Plot</th>
+                                <th>Scheduled date</th>
+                                <th>Water amount</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td>
+                                    <strong>{{ task.crop_or_plot }}</strong>
+                                    {% if task.crop %}
+                                        <div style="font-size: 11px; color: var(--text-muted);">Crop: {{ task.crop.name }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ task.scheduled_date|date:"d M Y" }}</td>
+                                <td>{{ task.water_amount }}</td>
+                                <td>
+                                    {% if task.status == 'completed' %}
+                                        <span class="badge badge-completed">✓ Completed</span>
+                                    {% else %}
+                                        <span class="badge badge-pending">⏱ Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right;">
+                                    <div style="display: inline-flex; gap: 6px;">
+                                        <a href="{% url 'irrigation_toggle' task.pk %}" class="btn btn-outline btn-sm">
+                                            {% if task.status == 'completed' %}Mark Pending{% else %}Mark Done{% endif %}
+                                        </a>
+                                        <form method="post" action="{% url 'irrigation_delete' task.pk %}" onsubmit="return confirm('Delete this irrigation task?');" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+                    <div style="font-size: 32px; margin-bottom: 8px;">💧</div>
+                    <p><strong>No irrigation tasks planned.</strong></p>
+                    <p style="font-size: 13px;">Add a task above to schedule precise watering.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

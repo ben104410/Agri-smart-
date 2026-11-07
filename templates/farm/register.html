@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}AgriSmart · Create Farmer Account{% endblock %}
+{% block page_name %}Account / Register{% endblock %}
+
+{% block content %}
+<div style="max-width: 540px; margin: 30px auto 0;">
+    <div class="card" style="box-shadow: var(--shadow-md);">
+        <div class="card-header" style="text-align: center; display: block; padding: 28px 24px 20px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #4caf50, #2e7d32); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: bold; margin: 0 auto 14px;">
+                ✳
+            </div>
+            <h1 class="card-title" style="font-size: 22px; margin-bottom: 6px;">Create your AgriSmart account</h1>
+            <p class="card-subtitle">Register to manage crops, track microclimates, and plan irrigation.</p>
+        </div>
+        <div class="card-body" style="padding: 24px 32px 32px;">
+            <form method="post" action="{% url 'register' %}">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">Email address</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label for="{{ form.first_name.id_for_label }}">First name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.last_name.id_for_label }}">Last name</label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password_confirm.id_for_label }}">Confirm password</label>
+                    {{ form.password_confirm }}
+                    {% if form.password_confirm.errors %}
+                    <div style="color: var(--accent-red); font-size: 12px; margin-top: 4px;">{{ form.password_confirm.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 15px; margin-top: 10px;">
+                    Create Farmer Account
+                </button>
+            </form>
+
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; font-size: 13.5px; color: var(--text-muted);">
+                Already registered?
+                <a href="{% url 'login' %}" style="color: var(--primary); font-weight: 700; text-decoration: none; margin-left: 4px;">
+                    Sign in here
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

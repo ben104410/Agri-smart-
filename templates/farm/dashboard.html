@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}AgriSmart · Dashboard{% endblock %}
+{% block page_name %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Good morning, {% if user.is_authenticated %}{{ user.first_name|default:user.username }}{% else %}Farmer{% endif %} 👋</h1>
+        <p class="page-subtitle">Here is what is happening on your farm today.</p>
+    </div>
+    <div class="actions">
+        <a href="{% url 'crop_list' %}#register-crop" class="btn btn-primary">＋ Add a crop</a>
+    </div>
+</div>
+
+<!-- Metrics Overview Grid -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-meta">
+            <div class="metric-label">Total crops ♧</div>
+            <div class="metric-value">{{ total_crops }}</div>
+            <div class="metric-desc">Registered crop records</div>
+        </div>
+        <div class="metric-icon-badge icon-green">♧</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-meta">
+            <div class="metric-label">Weather ☼</div>
+            <div class="metric-value">{{ weather.temperature }}°C</div>
+            <div class="metric-desc">{{ weather.condition_text }} · {{ weather.location }}</div>
+        </div>
+        <div class="metric-icon-badge icon-amber">☼</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-meta">
+            <div class="metric-label">Irrigation tasks ◉</div>
+            <div class="metric-value">{{ irrigation_tasks_count }}</div>
+            <div class="metric-desc">Sample planned activities</div>
+        </div>
+        <div class="metric-icon-badge icon-blue">◉</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-meta">
+            <div class="metric-label">Farm alerts !</div>
+            <div class="metric-value">{{ alerts_count }}</div>
+            <div class="metric-desc">
+                {% if alerts %}
+                    {{ alerts.first.title }}
+                {% else %}
+                    No active warnings
+                {% endif %}
+            </div>
+        </div>
+        <div class="metric-icon-badge icon-red">!</div>
+    </div>
+</div>
+
+<!-- 2 Column Section: Crops Table & Farm Conditions -->
+<div class="dashboard-columns">
+    <!-- Left Column: Registered Crops -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">My registered crops</h2>
+                <p class="card-subtitle">A quick view of your crop records.</p>
+            </div>
+            <a href="{% url 'crop_list' %}" class="btn btn-outline btn-sm">View all →</a>
+        </div>
+        <div class="card-body">
+            {% if recent_crops %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Crop</th>
+                            <th>Farm / Plot</th>
+                            <th>Planting date</th>
+                            <th>Condition</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for crop in recent_crops %}
+                        <tr>
+                            <td><strong>{{ crop.name }}</strong></td>
+                            <td>{{ crop.plot_name }}</td>
+                            <td>{{ crop.planting_date|date:"d M Y" }}</td>
+                            <td>
+                                {% if crop.condition == 'healthy' %}
+                                    <span class="badge badge-healthy">● Healthy</span>
+                                {% elif crop.condition == 'needs_attention' %}
+                                    <span class="badge badge-attention">▲ Needs attention</span>
+                                {% else %}
+                                    <span class="badge badge-risk">■ At risk</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'crop_edit' crop.pk %}" class="btn btn-outline btn-sm">Edit</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="padding: 24px; text-align: center; color: var(--text-muted);">
+                <p style="margin-bottom: 12px;">No crops added yet. Add your first crop to get started.</p>
+                <a href="{% url 'crop_list' %}#register-crop" class="btn btn-primary btn-sm">＋ Register your first crop</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Farm conditions -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">Farm conditions</h2>
+                    <p class="card-subtitle">Illustrative readings for the prototype.</p>
+                </div>
+                <span class="badge badge-pending">Sample data</span>
+            </div>
+            <div class="card-body">
+                <div class="condition-list">
+                    <div class="condition-item">
+                        <div class="condition-left">
+                            <span class="symbol">☼</span>
+                            <div>
+                                <div class="condition-name">Temperature</div>
+                                <div class="condition-sub">{{ weather.condition_text }}</div>
+                            </div>
+                        </div>
+                        <div class="condition-val">{{ weather.temperature }}°C</div>
+                    </div>
+
+                    <div class="condition-item">
+                        <div class="condition-left">
+                            <span class="symbol">💧</span>
+                            <div>
+                                <div class="condition-name">Soil moisture</div>
+                                <div class="condition-sub">Example sensor reading</div>
+                            </div>
+                        </div>
+                        <div class="condition-val">{{ weather.soil_moisture }}%</div>
+                    </div>
+
+                    <div class="condition-item">
+                        <div class="condition-left">
+                            <span class="symbol">☂</span>
+                            <div>
+                                <div class="condition-name">Rainfall</div>
+                                <div class="condition-sub">Forecast placeholder</div>
+                            </div>
+                        </div>
+                        <div class="condition-val">{{ weather.rainfall_forecast }}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 16px; text-align: right;">
+                    <a href="{% url 'weather' %}" class="btn btn-outline btn-sm">Detailed Weather →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tip Banner -->
+        <div class="tip-banner">
+            <div class="tip-icon">✦</div>
+            <div class="tip-content">
+                <div class="tip-tag">AGRI SMART TIP</div>
+                <h3>Keep your farm records up to date</h3>
+                <p>Record planting dates, crop conditions and irrigation activities. Accurate records make it easier to monitor progress and plan farm activities.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
