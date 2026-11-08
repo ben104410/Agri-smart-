@@ -192,6 +192,42 @@ python manage.py runserver
 
 ---
 
+## Deploy to Render
+
+The repository is pre-configured for deployment on [Render](https://render.com/).
+
+### Option A: 1-Click Blueprint (Recommended)
+1. Push this project to your GitHub/GitLab repository.
+2. Log in to [Render Dashboard](https://dashboard.render.com/).
+3. Click **New +** and select **Blueprint**.
+4. Connect your repository. Render will automatically detect [render.yaml](render.yaml) and configure:
+   - Python Web Service
+   - PostgreSQL Database
+   - Build command (`bash build.sh`)
+   - Start command (`gunicorn agrismart_project.wsgi:application`)
+   - Environment variables (auto-generated `SECRET_KEY`, database connection, static files, etc.)
+5. (Optional) Provide your `GEMINI_API_KEY` in the Render environment variables if using the AI Assistant.
+6. Click **Apply**.
+
+### Option B: Manual Web Service Setup
+1. In Render Dashboard, click **New +** -> **Web Service**.
+2. Connect your repository.
+3. Configure the following settings:
+   - **Environment**: `Python`
+   - **Build Command**: `bash build.sh`
+   - **Start Command**: `gunicorn agrismart_project.wsgi:application`
+4. Add the following **Environment Variables**:
+   - `PYTHON_VERSION`: `3.12.8`
+   - `SECRET_KEY`: *[Generate a secure 50+ character random string]*
+   - `DEBUG`: `False`
+   - `ALLOWED_HOSTS`: `.onrender.com`
+   - `SEED_DEMO_DATA`: `true`
+   - `GEMINI_API_KEY`: *[Your Google Gemini API Key - Optional]*
+   - `DATABASE_URL`: *[Your Render PostgreSQL Internal Database URL - Optional, falls back to SQLite]*
+5. Click **Deploy Web Service**.
+
+---
+
 ## Project Structure
 
 ```

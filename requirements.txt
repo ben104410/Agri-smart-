@@ -8,3 +8,10 @@ tzdata==2026.6
 google-genai
 google-generativeai
 python-dotenv
+requests>=2.31.0
+
+# Production & Deployment (Render)
+gunicorn>=21.2.0
+whitenoise>=6.6.0
+dj-database-url>=2.1.0
+psycopg2-binary>=2.9.9
